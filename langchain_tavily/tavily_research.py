@@ -115,12 +115,12 @@ class TavilyResearch(BaseTool):  # type: ignore[override, override]
     
     Default is 'auto'
     """
-    output_schema: Optional[Dict[str, Any]] = None
+    research_output_schema: Optional[Dict[str, Any]] = None
     """A JSON Schema object that defines the structure of the research output.
     
     Default is None
     """
-    stream: Optional[bool] = None
+    stream_results: Optional[bool] = None
     """Whether to stream the research results as they are generated. When 'true', returns a Server-Sent Events (SSE) stream
     
     Default is False
@@ -170,12 +170,12 @@ class TavilyResearch(BaseTool):  # type: ignore[override, override]
                 Generator[bytes, None, None]: A generator that yields response chunks as bytes
         """
         try:
-            is_streaming = stream if stream is not None else (self.stream if self.stream is not None else False)
+            is_streaming = stream if stream is not None else (self.stream_results if self.stream_results is not None else False)
             
             raw_results = self.api_wrapper.raw_results(
                 input=input,
                 research_model=research_model if research_model is not None else self.research_model,
-                output_schema=output_schema,
+                output_schema=output_schema if output_schema is not None else self.research_output_schema,
                 stream=is_streaming,
                 citation_format=self.citation_format
                 if self.citation_format
@@ -214,12 +214,12 @@ class TavilyResearch(BaseTool):  # type: ignore[override, override]
                 AsyncGenerator[bytes, None]: An async generator that yields response chunks as bytes
         """
         try:
-            is_streaming = stream if stream is not None else (self.stream if self.stream is not None else False)
+            is_streaming = stream if stream is not None else (self.stream_results if self.stream_results is not None else False)
             
             raw_results = await self.api_wrapper.raw_results_async(
                 input=input,
                 research_model=research_model if research_model is not None else self.research_model,
-                output_schema=output_schema,
+                output_schema=output_schema if output_schema is not None else self.research_output_schema,
                 stream=is_streaming,
                 citation_format=self.citation_format
                 if self.citation_format
@@ -231,7 +231,7 @@ class TavilyResearch(BaseTool):  # type: ignore[override, override]
             # Re-raise tool exceptions
             raise
         except Exception as e:
-            is_streaming = stream if stream is not None else (self.stream if self.stream is not None else False)
+            is_streaming = stream if stream is not None else (self.stream_results if self.stream_results is not None else False)
             if is_streaming:
                 raise
             return {"error": str(e)}
